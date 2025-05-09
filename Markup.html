@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown Editor</title>
+  <style>
+    body { display: flex; font-family: Arial, sans-serif; height: 100vh; margin: 0; }
+    textarea, .preview { width: 50%; padding: 1rem; border: none; resize: none; }
+    textarea { font-family: monospace; border-right: 1px solid #ccc; }
+    .preview { overflow-y: auto; background: #f9f9f9; position: relative; }
+    .controls { position: absolute; top: 1rem; right: 1rem; z-index: 10; }
+    button { margin-left: 0.5rem; }
+  </style>
+</head>
+<body>
+  <textarea id="markdown" placeholder="Type Markdown here..."></textarea>
+  <div class="preview">
+    <div class="controls">
+      <button onclick="exportToPDF()">Export</button>
+      <button onclick="copyToClipboard()">Copy</button>
+    </div>
+    <div id="rendered" style="padding-top: 3rem;"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    const markdownInput = document.getElementById('markdown');
+    const renderedOutput = document.getElementById('rendered');
+
+    function updatePreview() {
+      const html = marked.parse(markdownInput.value);
+      renderedOutput.innerHTML = html;
+    }
+
+    markdownInput.addEventListener('input', updatePreview);
+    window.addEventListener('DOMContentLoaded', updatePreview);
+
+    function exportToPDF() {
+      const content = renderedOutput.cloneNode(true);
+      const container = document.createElement('div');
+      container.style.padding = '1rem';
+      container.appendChild(content);
+      html2pdf().from(container).set({ margin: 1 }).save("markdown_output.pdf");
+    }
+    function copyToClipboard() {
+  const html = renderedOutput.innerHTML;
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  tempDiv.style.position = 'absolute';
+  tempDiv.style.left = '-9999px';
+  tempDiv.contentEditable = true;
+  document.body.appendChild(tempDiv);
+
+  const range = document.createRange();
+  range.selectNodeContents(tempDiv);
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+
+  try {
+    document.execCommand('copy');
+    alert('Rich text copied to clipboard');
+  } catch (err) {
+    console.error('Copy failed:', err);
+    alert('Copy failed. Your browser may not support copying HTML.');
+  }
+
+  document.body.removeChild(tempDiv);
+}
+
+
+     </script>
+</body>
+</html>
