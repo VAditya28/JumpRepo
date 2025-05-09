@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Markdown Editor</title>
+  <style>
+    body { display: flex; margin: 0; height: 100vh; font-family: sans-serif; }
+    textarea, #preview { width: 50%; height: 100%; padding: 1rem; box-sizing: border-box; }
+    #preview { overflow-y: auto; background: #f9f9f9; }
+    .toolbar { padding: 0.5rem; background: #eee; display: flex; gap: 1rem; }
+  </style>
+</head>
+<body>
+  <textarea id="editor" placeholder="Type markdown here..."></textarea>
+  <div style="flex-grow: 1; display: flex; flex-direction: column;">
+    <div class="toolbar">
+      <button onclick="copyToClipboard()">Copy</button>
+      <button onclick="downloadPDF()">Export</button>
+    </div>
+    <div id="preview"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script>
+    const editor = document.getElementById('editor');
+    const preview = document.getElementById('preview');
+
+    editor.addEventListener('input', () => {
+      preview.innerHTML = marked.parse(editor.value);
+    });
+
+    function copyToClipboard() {
+      navigator.clipboard.writeText(preview.innerHTML)
+        .then(() => alert('Copied!'))
+        .catch(err => console.error('Copy failed', err));
+    }
+
+    async function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const canvas = await html2canvas(preview);
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF();
+      const width = pdf.internal.pageSize.getWidth();
+      const height = (canvas.height * width) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, width, height);
+      pdf.save('markdown.pdf');
+    }
+  </script>
+</body>
+</html>
